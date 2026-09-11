@@ -39,6 +39,12 @@
           Stories
         </NuxtLink>
 
+        <NuxtLink
+          to="/admin/analytics"
+          class="text-sm font-medium text-[#5f5a52] transition hover:text-[#a16d45]"
+        >
+          Analytics
+        </NuxtLink>
       </nav>
 
       <!-- Actions -->

@@ -10,6 +10,7 @@
     "postinstall": "nuxt prepare"
   },
   "dependencies": {
+    "@nuxtjs/supabase": "^2.0.10",
     "@portabletext/vue": "^2.0.0",
     "@sanity/client": "^8.5.0",
     "@sanity/image-url": "^2.1.1",

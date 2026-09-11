@@ -1,4 +1,4 @@
-import { sanity, urlFor } from '../utils/sanity'
+import { sanity, urlFor } from "../utils/sanity";
 
 export default defineEventHandler(async () => {
   const query = `
@@ -30,15 +30,15 @@ export default defineEventHandler(async () => {
         featuredImage
       }
     }
-  `
+  `;
 
-  const data = await sanity.fetch(query)
+  const data = await sanity.fetch(query);
 
   return {
     featured: data.featured.map(addImageUrl),
     latest: data.latest.map(addImageUrl),
-  }
-})
+  };
+});
 
 function addImageUrl(story: any) {
   return {
@@ -47,9 +47,9 @@ function addImageUrl(story: any) {
       ? urlFor(story.featuredImage)
           .width(1200)
           .height(800)
-          .fit('crop')
-          .auto('format')
+          .fit("crop")
+          .auto("format")
           .url()
       : null,
-  }
+  };
 }

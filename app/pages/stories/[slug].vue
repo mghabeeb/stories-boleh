@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { PortableText } from '@portabletext/vue'
+import { useRoute } from 'vue-router'
+import { computed, onMounted, onUnmounted, watch, onBeforeUnmount } from 'vue'
 
 const route = useRoute()
 
@@ -55,6 +57,80 @@ useHead(() => ({
     ? `${story.value.title} — Stories`
     : 'Story',
 }))
+
+// Time spent
+onMounted(() => {
+  const start = Date.now()
+
+  const sendDuration = () => {
+    const duration = Math.round((Date.now() - start) / 1000) // seconds
+    const data = JSON.stringify({
+      event: 'time_spent',
+      path: route.fullPath,
+      duration
+    })
+    
+    // Wrap inside a Blob to force application/json header
+    const blob = new Blob([data], { type: 'application/json' })
+    navigator.sendBeacon('/api/analytics', blob)
+  }
+
+  // Note: 'pagehide' is highly recommended over 'beforeunload' for mobile browsers
+  window.addEventListener('pagehide', sendDuration)
+  
+  onBeforeUnmount(() => {
+    sendDuration()
+    window.removeEventListener('pagehide', sendDuration)
+  })
+})
+
+// Scroll depth
+onMounted(() => {
+  let maxDepth = 0
+  const thresholds = [25, 50, 75, 100]
+
+  const handler = () => {
+    const scrollTop = window.scrollY
+    const docHeight = document.documentElement.scrollHeight - window.innerHeight
+    
+    // Prevent division by zero if page is not scrollable
+    if (docHeight <= 0) return 
+    
+    const percent = Math.round((scrollTop / docHeight) * 100)
+
+    const reached = thresholds.find(t => percent >= t && t > maxDepth)
+    if (reached) {
+      maxDepth = reached
+      const data = JSON.stringify({
+        event: 'scroll_depth',
+        path: route.fullPath,
+        depth: reached
+      })
+      
+      const blob = new Blob([data], { type: 'application/json' })
+      navigator.sendBeacon('/api/analytics', blob)
+    }
+  }
+
+  window.addEventListener('scroll', handler, { passive: true })
+  
+  onBeforeUnmount(() => {
+    window.removeEventListener('scroll', handler)
+  })
+})
+
+// Navigation
+watch(() => route.fullPath, (newPath, oldPath) => {
+  const data = JSON.stringify({
+    event: 'page_navigation',
+    path: newPath, // Explicitly fulfills your database NOT NULL requirement
+    from: oldPath,
+    to: newPath
+  })
+  
+  const blob = new Blob([data], { type: 'application/json' })
+  navigator.sendBeacon('/api/analytics', blob)
+})
 </script>
 
 <template>
